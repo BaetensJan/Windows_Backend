@@ -5,7 +5,7 @@ namespace Windows_Backend.Enums
         Winkel,
         Restaurant,
         Café,
-        Ander
+        Andere
         
     }
 }
