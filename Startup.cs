@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows_Backend.Data;
+using Windows_Backend.Data.Repositories;
 using Windows_Backend.Entities;
+using Windows_Backend.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -62,6 +64,7 @@ namespace Windows_Backend
                 });
             
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddScoped<IBusinessRepository, BusinessRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -80,7 +83,7 @@ namespace Windows_Backend
             //app.UseHttpsRedirection();
             app.UseAuthentication();
 
-            app.UseMvc();
+            app.UseMvcWithDefaultRoute();
             
             dbContext.Database.EnsureCreated();
         }
