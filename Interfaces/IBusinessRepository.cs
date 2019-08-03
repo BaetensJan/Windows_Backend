@@ -7,5 +7,6 @@ namespace Windows_Backend.Interfaces
     public interface IBusinessRepository
     {
         Task<List<Business>> All();
+        Task<Business> FindById(int id);
     }
 }

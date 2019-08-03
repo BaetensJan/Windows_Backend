@@ -18,10 +18,17 @@ namespace Windows_Backend.Controllers
             _businessRepository = businessRepository;
         }
         
-        [HttpGet()]
+        [HttpGet]
+        [HttpGet("[controller]")]
         public async Task<List<Business>> Index()
         {
             return await _businessRepository.All();
+        }
+        
+        [HttpGet("[controller]/[action]/{id}")]
+        public async Task<Business> Index(int id)
+        {
+            return await _businessRepository.FindById(id);
         }
     }
 }

@@ -22,5 +22,10 @@ namespace Windows_Backend.Data.Repositories
         {
             return _businesses.ToListAsync();
         }
+
+        public Task<Business> FindById(int id)
+        {
+            return _businesses.SingleOrDefaultAsync(b => b.Id == id);
+        }
     }
 }
