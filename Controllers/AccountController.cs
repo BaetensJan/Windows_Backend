@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Windows_Backend.DTO;
+using Windows_Backend.Entities;
+using Windows_Backend.Enums;
+using Windows_Backend.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Windows_Backend.DTO;
-using Windows_Backend.Entities;
-using Windows_Backend.Enums;
 
 namespace Windows_Backend.Controllers
 {
@@ -22,38 +22,41 @@ namespace Windows_Backend.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            IConfiguration configuration
-            )
+            IConfiguration configuration,
+            IUserRepository userRepository
+        )
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _configuration =     configuration;
+            _configuration = configuration;
+            _userRepository = userRepository;
         }
-        
+
         [HttpPost]
         public async Task<object> Login([FromBody] LoginDTO model)
         {
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
-            
+
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == model.Email);
                 return await GenerateJwtToken(model.Email, appUser);
             }
-            
+
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
-       
+
         [HttpPost]
         public async Task<object> Register([FromBody] RegisterDTO model)
         {
             var user = new User
             {
-                UserName = model.Email, 
+                UserName = model.Email,
                 Email = model.Email,
                 UserType = model.UserType
             };
@@ -66,24 +69,29 @@ namespace Windows_Backend.Controllers
                     Type = model.Business.Type
                 };
             }
-            var result = await _userManager.CreateAsync(user, model.Password);
 
-            if (result.Succeeded)
+            var result = await _userManager.CreateAsync(user, model.Password);
+            var result1 =
+                await _userManager.AddToRoleAsync(user, user.UserType == UserType.Business ? "Business" : "Customer");
+
+            if (result.Succeeded && result1.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
                 return await GenerateJwtToken(model.Email, user);
             }
-            
+
             throw new ApplicationException("UNKNOWN_ERROR");
         }
-        
-        private async Task<object> GenerateJwtToken(string email, IdentityUser user)
+
+        private async Task<object> GenerateJwtToken(string email, User user)
         {
+            var business = (await _userRepository.FindByEmail(email)).Business;
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("businessId", business.Id.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));

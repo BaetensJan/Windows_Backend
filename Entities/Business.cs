@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Windows_Backend.Enums;
 
 namespace Windows_Backend.Entities
@@ -8,5 +9,6 @@ namespace Windows_Backend.Entities
         public string Name { get; set; }
         public BusinessType Type { get; set; }
         public string Address { get; set; } //TODO: split if needed
+        public List<Event> Events { get; set; }
     }
 }

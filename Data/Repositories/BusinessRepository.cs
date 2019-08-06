@@ -6,26 +6,31 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Windows_Backend.Data.Repositories
 {
-    public class BusinessRepository: IBusinessRepository
+    public class BusinessRepository : IBusinessRepository
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly DbSet<Business> _businesses;
-        
+
         public BusinessRepository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
             _businesses = dbContext.Businesses;
         }
 
-        
+
         public Task<List<Business>> All()
         {
-            return _businesses.ToListAsync();
+            return _businesses.Include(b => b.Events).ToListAsync();
         }
 
         public Task<Business> FindById(int id)
         {
-            return _businesses.SingleOrDefaultAsync(b => b.Id == id);
+            return _businesses.Include(b => b.Events).SingleOrDefaultAsync(b => b.Id == id);
+        }
+
+        public Task SaveChanges()
+        {
+            return _dbContext.SaveChangesAsync();
         }
     }
 }

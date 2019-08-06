@@ -1,0 +1,7 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea
+.vs/
+Services/
+Windows_Backend.sln.DotSettings.user
+bin/
+obj/
