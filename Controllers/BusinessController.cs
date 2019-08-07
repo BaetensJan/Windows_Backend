@@ -14,13 +14,15 @@ namespace Windows_Backend.Controllers
         private readonly IBusinessRepository _businessRepository;
         private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
+        private readonly IEventRepository _eventRepository;
 
         public BusinessController(IBusinessRepository businessRepository, UserManager<User> userManager,
-            IUserRepository userRepository)
+            IUserRepository userRepository, IEventRepository eventRepository)
         {
             _businessRepository = businessRepository;
             _userManager = userManager;
             _userRepository = userRepository;
+            _eventRepository = eventRepository;
         }
 
         [HttpGet]
@@ -48,10 +50,11 @@ namespace Windows_Backend.Controllers
             business.Type = model.Type;
             business.Address = model.Address;
 
-            if (business.Events == null)
-                business.Events = new List<Event>();
+            _eventRepository.RemoveMultiple(business.Events);
 
-            business.Events.Clear();
+            business.Events = new List<Event>();
+            await _businessRepository.SaveChanges();
+
             foreach (var ev in model.Events)
             {
                 business.Events.Add(new Event()
