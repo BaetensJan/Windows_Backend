@@ -21,5 +21,10 @@ namespace Windows_Backend.Data.Repositories
             return await _users.Include(u => u.Business).ThenInclude(b => b.Events)
                 .SingleOrDefaultAsync(u => u.Email.Equals(email));
         }
+
+        public async void SaveChanges()
+        {
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

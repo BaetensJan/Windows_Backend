@@ -19,9 +19,9 @@ namespace Windows_Backend.Controllers
     [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
+        private readonly IConfiguration _configuration;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
 
         public AccountController(
@@ -73,7 +73,7 @@ namespace Windows_Backend.Controllers
             var result = await _userManager.CreateAsync(user, model.Password);
             var result1 =
                 await _userManager.AddToRoleAsync(user, user.UserType == UserType.Business ? "Business" : "Customer");
-
+            _userRepository.SaveChanges();
             if (result.Succeeded && result1.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
@@ -90,9 +90,13 @@ namespace Windows_Backend.Controllers
             {
                 new Claim(JwtRegisteredClaimNames.Sub, email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim("businessId", business.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
+
+            if (business != null)
+            {
+                claims.Add(new Claim("businessId", business.Id.ToString()));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
