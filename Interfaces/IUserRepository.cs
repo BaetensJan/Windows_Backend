@@ -6,5 +6,6 @@ namespace Windows_Backend.Interfaces
     public interface IUserRepository
     {
         Task<User> FindByEmail(string email);
+        void SaveChanges();
     }
 }

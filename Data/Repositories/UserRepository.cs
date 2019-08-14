@@ -18,8 +18,13 @@ namespace Windows_Backend.Data.Repositories
 
         public async Task<User> FindByEmail(string email)
         {
-            return await _users.Include(u => u.Business).ThenInclude(b => b.Events)
+            return await _users.Include(x => x.Subscribers).Include(u => u.Business).ThenInclude(b => b.Events)
                 .SingleOrDefaultAsync(u => u.Email.Equals(email));
+        }
+
+        public async void SaveChanges()
+        {
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
