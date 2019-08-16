@@ -10,5 +10,6 @@ namespace Windows_Backend.Entities
         public BusinessType Type { get; set; }
         public string Address { get; set; } //TODO: split if needed
         public List<Event> Events { get; set; }
+        public List<Promotion> Promotions { get; set; }
     }
 }

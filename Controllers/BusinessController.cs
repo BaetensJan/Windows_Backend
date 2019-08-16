@@ -15,14 +15,17 @@ namespace Windows_Backend.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
         private readonly IEventRepository _eventRepository;
+        private readonly IPromotionRepository _promotionRepository;
 
         public BusinessController(IBusinessRepository businessRepository, UserManager<User> userManager,
-            IUserRepository userRepository, IEventRepository eventRepository)
+            IUserRepository userRepository, IEventRepository eventRepository,
+            IPromotionRepository promotionRepository)
         {
             _businessRepository = businessRepository;
             _userManager = userManager;
             _userRepository = userRepository;
             _eventRepository = eventRepository;
+            _promotionRepository = promotionRepository;
         }
 
         [HttpGet]
@@ -35,6 +38,7 @@ namespace Windows_Backend.Controllers
         [HttpGet("{id}")]
         public async Task<Business> Index([FromRoute] int id)
         {
+            var result = await _businessRepository.FindById(id);
             return await _businessRepository.FindById(id);
         }
 
@@ -50,7 +54,57 @@ namespace Windows_Backend.Controllers
             business.Type = model.Type;
             business.Address = model.Address;
 
-            _eventRepository.RemoveMultiple(business.Events);
+            await _businessRepository.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddPromotion([FromBody] BusinessDTO model)
+        {
+            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var user = await _userRepository.FindByEmail(email);
+
+            var business = user.Business;
+            if (business == null) return Unauthorized();
+            /*
+            business.Name = model.Name;
+            business.Type = model.Type;
+            business.Address = model.Address;
+            */
+
+            if (business.Promotions != null)
+            {
+                _promotionRepository.RemoveMultiple(business.Promotions);
+            }
+            business.Promotions = new List<Promotion>();
+            await _businessRepository.SaveChanges();
+            foreach (var promotion in model.Promotions)
+            {
+                    business.Promotions.Add(new Promotion()
+                    {
+                        Name = promotion.Name,
+                        PromotionType = promotion.PromotionType,
+                        Description = promotion.Description
+                    });
+            }
+
+            await _businessRepository.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddEvents([FromBody] BusinessDTO model)
+        {
+            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var user = await _userRepository.FindByEmail(email);
+
+            var business = user.Business;
+            if (business == null) return Unauthorized();
+
+            if (business.Events != null)
+            {
+                _eventRepository.RemoveMultiple(business.Events);
+            }
 
             business.Events = new List<Event>();
             await _businessRepository.SaveChanges();

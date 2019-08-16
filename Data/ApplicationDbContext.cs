@@ -12,6 +12,10 @@ namespace Windows_Backend.Data
         public DbSet<Business> Businesses { get; set; }
         public DbSet<Event> Events { get; set; }
 
+        public DbSet<UserBusiness> UserBusiness { get; set; }
+
+        public DbSet<Promotion> Promotions { get; set; }
+
         public ApplicationDbContext(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -27,6 +31,8 @@ namespace Windows_Backend.Data
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new BusinessConfiguration());
             builder.ApplyConfiguration(new EventConfiguration());
+            builder.ApplyConfiguration(new PromotionConfiguration());
+            builder.ApplyConfiguration(new UserBusinessConfiguration());
         }
     }
 }

@@ -142,7 +142,8 @@ namespace Windows_Backend.Controllers
             }
             else
             {
-                user.Subscribers.RemoveAt(count - 1);
+                _userRepository.RemoveUserBusinessForUserAsync(user.Email, count - 1);
+                //user.Subscribers.RemoveAt(count - 1);
             }
             _userRepository.SaveChanges();
             return alreadySubscribed;

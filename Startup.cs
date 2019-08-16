@@ -61,7 +61,9 @@ namespace Windows_Backend
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddScoped<IBusinessRepository, BusinessRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<IPromotionRepository, PromotionRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserBusinessRepository, UserBusinessRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

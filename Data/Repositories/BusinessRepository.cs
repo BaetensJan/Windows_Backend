@@ -25,7 +25,7 @@ namespace Windows_Backend.Data.Repositories
 
         public Task<Business> FindById(int id)
         {
-            return _businesses.Include(b => b.Events).SingleOrDefaultAsync(b => b.Id == id);
+            return _businesses.Include(b => b.Events).Include(x => x.Promotions).SingleOrDefaultAsync(b => b.Id == id);
         }
 
         public Task SaveChanges()
