@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using Windows_Backend.DTO;
 using Windows_Backend.Entities;
 using Windows_Backend.Interfaces;
+using IronPdf;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using NetBarcode;
 
 namespace Windows_Backend.Controllers
 {
@@ -12,10 +14,10 @@ namespace Windows_Backend.Controllers
     public class BusinessController : Controller
     {
         private readonly IBusinessRepository _businessRepository;
-        private readonly UserManager<User> _userManager;
-        private readonly IUserRepository _userRepository;
         private readonly IEventRepository _eventRepository;
         private readonly IPromotionRepository _promotionRepository;
+        private readonly UserManager<User> _userManager;
+        private readonly IUserRepository _userRepository;
 
         public BusinessController(IBusinessRepository businessRepository, UserManager<User> userManager,
             IUserRepository userRepository, IEventRepository eventRepository,
@@ -76,16 +78,17 @@ namespace Windows_Backend.Controllers
             {
                 _promotionRepository.RemoveMultiple(business.Promotions);
             }
+
             business.Promotions = new List<Promotion>();
             await _businessRepository.SaveChanges();
             foreach (var promotion in model.Promotions)
             {
-                    business.Promotions.Add(new Promotion()
-                    {
-                        Name = promotion.Name,
-                        PromotionType = promotion.PromotionType,
-                        Description = promotion.Description
-                    });
+                business.Promotions.Add(new Promotion()
+                {
+                    Name = promotion.Name,
+                    PromotionType = promotion.PromotionType,
+                    Description = promotion.Description
+                });
             }
 
             await _businessRepository.SaveChanges();
@@ -121,6 +124,19 @@ namespace Windows_Backend.Controllers
 
             await _businessRepository.SaveChanges();
             return Ok();
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> PdfForPromotion([FromRoute] int id)
+        {
+            //TODO: add validation if promotion has pdf coupon
+            var renderer = new HtmlToPdf();
+            var myBarCode = new Barcode($"Promotion_{id}");
+            var html = $"<img src=\"data:image/png;base64, {myBarCode.GetBase64Image()}\"/>";
+            var memory = renderer.RenderHtmlAsPdf(html).Stream;
+
+            memory.Position = 0;
+            return new FileStreamResult(memory, "application/pdf");
         }
     }
 }
