@@ -24,5 +24,11 @@ namespace Windows_Backend.Data.Repositories
             _promotions.RemoveRange(promotionList);
             await _dbcontext.SaveChangesAsync();
         }
+        public void RemovePromotion(Promotion removePromotion)
+        {
+            var removePromotionById = _promotions.Where(x => x.Id == removePromotion.Id).First();
+            _promotions.Remove(removePromotionById);
+            _dbcontext.SaveChanges();
+        }
     }
 }

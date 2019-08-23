@@ -66,11 +66,6 @@ namespace Windows_Backend.Controllers
 
             var business = user.Business;
             if (business == null) return Unauthorized();
-            /*
-            business.Name = model.Name;
-            business.Type = model.Type;
-            business.Address = model.Address;
-            */
 
             if (business.Promotions != null)
             {
@@ -84,6 +79,7 @@ namespace Windows_Backend.Controllers
                     {
                         Name = promotion.Name,
                         PromotionType = promotion.PromotionType,
+                        StartAndEndDate = promotion.StartAndEndDate,
                         Description = promotion.Description
                     });
             }
@@ -120,6 +116,38 @@ namespace Windows_Backend.Controllers
             }
 
             await _businessRepository.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveEvents([FromBody] EventDTO model)
+        {
+            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var user = await _userRepository.FindByEmail(email);
+
+            var business = user.Business;
+            if (business == null) return Unauthorized();
+
+            if (business.Events != null)
+            {
+                _eventRepository.RemoveEvent(new Event { Id = model.Id, Description = model.Description, Name = model.Name, Type = model.Type});
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemovePromotion([FromBody] PromotionDTO model)
+        {
+            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var user = await _userRepository.FindByEmail(email);
+
+            var business = user.Business;
+            if (business == null) return Unauthorized();
+
+            if (business.Promotions != null)
+            {
+                _promotionRepository.RemovePromotion(new Promotion { Id = model.Id, Description = model.Description, Name = model.Name, PromotionType = model.PromotionType, StartAndEndDate = model.StartAndEndDate});
+            }
             return Ok();
         }
     }

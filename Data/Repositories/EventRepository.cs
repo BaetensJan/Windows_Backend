@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Windows_Backend.Entities;
 using Windows_Backend.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Windows_Backend.Data.Repositories
 {
@@ -20,6 +21,12 @@ namespace Windows_Backend.Data.Repositories
         {
             _events.RemoveRange(evList);
             await _dbcontext.SaveChangesAsync();
+        }
+        public void RemoveEvent(Event removeEvent)
+        {
+            var removeEventById = _events.Where(x => x.Id == removeEvent.Id).First();
+            _events.Remove(removeEventById);
+            _dbcontext.SaveChanges();
         }
     }
 }
