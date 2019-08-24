@@ -19,16 +19,25 @@ namespace Windows_Backend.Data.Repositories
             _promotions = dbContext.Promotions;
         }
 
-        public async void RemoveMultiple(List<Promotion> promotionList)
+        public async Task RemoveMultiple(List<Promotion> promotionList)
         {
             _promotions.RemoveRange(promotionList);
             await _dbcontext.SaveChangesAsync();
         }
-        public void RemovePromotion(Promotion removePromotion)
+        public async Task RemovePromotion(Promotion removePromotion)
         {
             var removePromotionById = _promotions.Where(x => x.Id == removePromotion.Id).First();
             _promotions.Remove(removePromotionById);
-            _dbcontext.SaveChanges();
+             await _dbcontext.SaveChangesAsync();
+        }
+
+        public async Task<Promotion> FindById(int id)
+        {
+            return await _promotions.SingleOrDefaultAsync(x => x.Id == id);
+        }
+        public Task SaveChanges()
+        {
+           return _dbcontext.SaveChangesAsync();
         }
     }
 }

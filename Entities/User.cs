@@ -1,6 +1,7 @@
 using Windows_Backend.Enums;
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
+using System;
 
 namespace Windows_Backend.Entities
 {
@@ -10,5 +11,6 @@ namespace Windows_Backend.Entities
         public Business Business { get; set; }
 
         public List<UserBusiness> Subscribers { get; set; }
+        public DateTime LastLogin { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Windows_Backend.Enums;
 
 namespace Windows_Backend.Entities
@@ -8,5 +9,6 @@ namespace Windows_Backend.Entities
         public string Name { get; set; }
         public string Type { get; set; }
         public string Description { get; set; }
+        public DateTime Creation { get; set; }
     }
 }

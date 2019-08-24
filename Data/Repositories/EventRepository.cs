@@ -3,6 +3,7 @@ using Windows_Backend.Entities;
 using Windows_Backend.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Windows_Backend.Data.Repositories
 {
@@ -17,16 +18,24 @@ namespace Windows_Backend.Data.Repositories
             _events = dbContext.Events;
         }
 
-        public async void RemoveMultiple(List<Event> evList)
+        public async Task RemoveMultiple(List<Event> evList)
         {
             _events.RemoveRange(evList);
             await _dbcontext.SaveChangesAsync();
         }
-        public void RemoveEvent(Event removeEvent)
+        public async Task RemoveEvent(Event removeEvent)
         {
             var removeEventById = _events.Where(x => x.Id == removeEvent.Id).First();
             _events.Remove(removeEventById);
-            _dbcontext.SaveChanges();
+            await _dbcontext.SaveChangesAsync();
+        }
+        public async Task<Event> FindEventById(int id)
+        {
+            return await _events.SingleOrDefaultAsync(x => x.Id == id);
+        }
+        public async Task SaveChanges()
+        {
+            await _dbcontext.SaveChangesAsync();
         }
     }
 }

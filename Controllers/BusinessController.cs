@@ -7,6 +7,7 @@ using IronPdf;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NetBarcode;
+using System;
 
 namespace Windows_Backend.Controllers
 {
@@ -18,7 +19,6 @@ namespace Windows_Backend.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IEventRepository _eventRepository;
         private readonly IPromotionRepository _promotionRepository;
-
         public BusinessController(IBusinessRepository businessRepository, UserManager<User> userManager,
             IUserRepository userRepository, IEventRepository eventRepository,
             IPromotionRepository promotionRepository)
@@ -71,19 +71,20 @@ namespace Windows_Backend.Controllers
 
             if (business.Promotions != null)
             {
-                _promotionRepository.RemoveMultiple(business.Promotions);
+                await _promotionRepository.RemoveMultiple(business.Promotions);
             }
             business.Promotions = new List<Promotion>();
             await _businessRepository.SaveChanges();
             foreach (var promotion in model.Promotions)
             {
-                    business.Promotions.Add(new Promotion()
-                    {
-                        Name = promotion.Name,
-                        PromotionType = promotion.PromotionType,
-                        StartAndEndDate = promotion.StartAndEndDate,
-                        Description = promotion.Description
-                    });
+                business.Promotions.Add(new Promotion()
+                {
+                    Name = promotion.Name,
+                    PromotionType = promotion.PromotionType,
+                    StartAndEndDate = promotion.StartAndEndDate,
+                    Description = promotion.Description,
+                    Creation = promotion.Creation
+                });
             }
 
             await _businessRepository.SaveChanges();
@@ -101,7 +102,7 @@ namespace Windows_Backend.Controllers
 
             if (business.Events != null)
             {
-                _eventRepository.RemoveMultiple(business.Events);
+               await _eventRepository.RemoveMultiple(business.Events);
             }
 
             business.Events = new List<Event>();
@@ -113,7 +114,8 @@ namespace Windows_Backend.Controllers
                 {
                     Name = ev.Name,
                     Description = ev.Description,
-                    Type = ev.Type
+                    Type = ev.Type,
+                    Creation = ev.Creation
                 });
             }
 
@@ -145,7 +147,7 @@ namespace Windows_Backend.Controllers
 
             if (business.Events != null)
             {
-                _eventRepository.RemoveEvent(new Event { Id = model.Id, Description = model.Description, Name = model.Name, Type = model.Type});
+                await _eventRepository.RemoveEvent(new Event { Id = model.Id, Description = model.Description, Name = model.Name, Type = model.Type});
             }
             return Ok();
         }
@@ -161,9 +163,62 @@ namespace Windows_Backend.Controllers
 
             if (business.Promotions != null)
             {
-                _promotionRepository.RemovePromotion(new Promotion { Id = model.Id, Description = model.Description, Name = model.Name, PromotionType = model.PromotionType, StartAndEndDate = model.StartAndEndDate});
+               await _promotionRepository.RemovePromotion(new Promotion { Id = model.Id, Description = model.Description, Name = model.Name, PromotionType = model.PromotionType, StartAndEndDate = model.StartAndEndDate});
             }
             return Ok();
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditPromotion([FromBody] PromotionDTO model)
+        {
+            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var user = await _userRepository.FindByEmail(email);
+
+            var business = user.Business;
+            if (business == null) return Unauthorized();
+
+            if(business.Promotions == null)
+            {
+                new Exception("Promotielijst is leeg, er kan niets worden aangepast.");
+            }
+            var editPromotion = await _promotionRepository.FindById(model.Id);
+            editPromotion.Name = model.Name;
+            editPromotion.Description = model.Description;
+            editPromotion.PromotionType = model.PromotionType;
+            editPromotion.StartAndEndDate = model.StartAndEndDate;
+
+            await _promotionRepository.SaveChanges();
+
+            return Ok();
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditEvent([FromBody] EventDTO model)
+        {
+            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var user = await _userRepository.FindByEmail(email);
+
+            var business = user.Business;
+            if (business == null) return Unauthorized();
+
+            if (business.Promotions == null)
+            {
+                new Exception("Eventlijst is leeg, er kan niets worden aangepast.");
+            }
+            var editEvent = await _eventRepository.FindEventById(model.Id);
+            editEvent.Name = model.Name;
+            editEvent.Description = model.Description;
+            editEvent.Type = model.Type;
+
+            await _promotionRepository.SaveChanges();
+
+            return Ok();
+
+        }
+        private void CreateNotification()
+        {
+            
+
         }
     }
 }

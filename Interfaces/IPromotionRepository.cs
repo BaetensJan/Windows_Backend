@@ -8,7 +8,9 @@ namespace Windows_Backend.Interfaces
 {
     public interface IPromotionRepository
     {
-        void RemoveMultiple(List<Promotion> promotionList);
-        void RemovePromotion(Promotion removePromotion);
+        Task RemoveMultiple(List<Promotion> promotionList);
+        Task RemovePromotion(Promotion removePromotion);
+        Task<Promotion> FindById(int id);
+        Task SaveChanges();
     }
 }

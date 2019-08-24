@@ -19,7 +19,12 @@ namespace Windows_Backend.Data.Repositories
             _dbcontext = dbContext;
             _userBusiness = dbContext.UserBusiness;
         }
+        public Task<List<UserBusiness>> FindByUserId(string userId)
+        {
+            return _userBusiness.Where(x => x.UserId == userId).ToListAsync();
+        }
 
-        
+
+
     }
 }

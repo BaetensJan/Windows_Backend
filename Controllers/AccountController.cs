@@ -23,18 +23,24 @@ namespace Windows_Backend.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
+        private readonly IUserBusinessRepository _userBusinessRepository;
+        private readonly IBusinessRepository _businessRepository;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IConfiguration configuration,
-            IUserRepository userRepository
+            IUserRepository userRepository,
+            IUserBusinessRepository userBusinessRepository,
+            IBusinessRepository businessRepository
         )
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _userRepository = userRepository;
+            _userBusinessRepository = userBusinessRepository;
+            _businessRepository = businessRepository;
         }
 
         [HttpPost]
@@ -45,12 +51,66 @@ namespace Windows_Backend.Controllers
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == model.Email);
+                appUser.LastLogin = DateTime.UtcNow;
+                _userRepository.SaveChanges();
                 return await GenerateJwtToken(model.Email, appUser);
             }
 
+
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
-
+        [HttpGet("{email}")]
+        public async Task<List<PromotionDTO>> GetPromotionsFromAbonnees([FromRoute] string email)
+        {
+            var appUser = _userManager.Users.SingleOrDefault(r => r.Email == email);
+            var lastLogin = appUser.LastLogin;
+            var userBusiness = await _userBusinessRepository.FindByUserId(appUser.Id);
+            var allBusinesses = await _businessRepository.All();
+            List<PromotionDTO> promotions = new List<PromotionDTO>();
+            foreach (var ub in userBusiness)
+            {
+                foreach (var ab in allBusinesses)
+                {
+                    if (ub.BusinessId == ab.Id)
+                    {
+                        foreach (var promotion in ab.Promotions)
+                        {
+                            if (promotion.Creation >= lastLogin)
+                            {
+                                promotions.Add(new PromotionDTO { Name = promotion.Name, Description = promotion.Description, PromotionType = promotion.PromotionType , StartAndEndDate = promotion.StartAndEndDate});
+                            }
+                        }
+                    }
+                }
+            }
+            return promotions;
+        }
+        [HttpGet("{email}")]
+        public async Task<List<EventDTO>> GetEventsFromAbbonees([FromRoute] string email)
+        {
+            var appUser = _userManager.Users.SingleOrDefault(r => r.Email == email);
+            var lastLogin = appUser.LastLogin;
+            var userBusiness = await _userBusinessRepository.FindByUserId(appUser.Id);
+            var allBusinesses = await _businessRepository.All();
+            List<EventDTO> events = new List<EventDTO>();
+            foreach (var ub in userBusiness)
+            {
+                foreach (var ab in allBusinesses)
+                {
+                    if (ub.BusinessId == ab.Id)
+                    {
+                        foreach (var xEvent in ab.Events)
+                        {
+                            if (xEvent.Creation >= lastLogin)
+                            {
+                                events.Add(new EventDTO { Name = xEvent.Name, Description = xEvent.Description, Type = xEvent.Type });
+                            }
+                        }
+                    }
+                }
+            }
+            return events;
+        }
         [HttpPost]
         public async Task<object> Register([FromBody] RegisterDTO model)
         {
@@ -58,7 +118,8 @@ namespace Windows_Backend.Controllers
             {
                 UserName = model.Email,
                 Email = model.Email,
-                UserType = model.UserType
+                UserType = model.UserType,
+                LastLogin = DateTime.UtcNow
             };
             if (model.UserType == UserType.Business)
             {

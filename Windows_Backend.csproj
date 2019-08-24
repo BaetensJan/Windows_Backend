@@ -13,7 +13,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.4" />
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="5.1.1" />
     <PackageReference Include="NetBarcode" Version="1.0.7" />
+    <PackageReference Include="QueryString.NET" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>

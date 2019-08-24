@@ -8,5 +8,6 @@ namespace Windows_Backend.Interfaces
 {
     public interface IUserBusinessRepository
     {
+        Task<List<UserBusiness>> FindByUserId(string userId);
     }
 }
