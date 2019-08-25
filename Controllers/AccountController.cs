@@ -231,7 +231,8 @@ namespace Windows_Backend.Controllers
         [HttpPost]
         public async Task<bool> CheckUserBusinessForSubscription([FromBody] int Id)
         {
-            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var appUser = (await _userManager.GetUserAsync(HttpContext.User));
+            var email = appUser.Email;
             var user = await _userRepository.FindByEmail(email);
             var alreadySubscribed = false;
             foreach (var subscriber in user.Subscribers)
