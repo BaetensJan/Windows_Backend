@@ -38,10 +38,26 @@ namespace Windows_Backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<Business> Index([FromRoute] int id)
+        public async Task<BusinessDTO> Index([FromRoute] int id)
         {
             var result = await _businessRepository.FindById(id);
-            return await _businessRepository.FindById(id);
+            BusinessDTO businessDto = new BusinessDTO();
+            businessDto.Name = result.Name;
+            businessDto.Type = result.Type;
+            businessDto.Address = result.Address;
+            List<EventDTO> eventDtos = new List<EventDTO>();
+            foreach (var eventDto in result.Events)
+            {
+                eventDtos.Add(new EventDTO { Id = eventDto.Id, Name = eventDto.Name, Creation = eventDto.Creation, Description = eventDto.Description, Type = eventDto.Type });
+            }
+            List<PromotionDTO> promotionsDtos = new List<PromotionDTO>();
+            foreach(var promotionDto in result.Promotions)
+            {
+                promotionsDtos.Add(new PromotionDTO { Id = promotionDto.Id, Name = promotionDto.Name, Creation = promotionDto.Creation, PromotionType = promotionDto.PromotionType, Description = promotionDto.Description, EndDate = promotionDto.ConvertStringToDateTimeOffset(promotionDto.EndDate), StartDate = promotionDto.ConvertStringToDateTimeOffset(promotionDto.StartDate)});
+            }
+            businessDto.Events = eventDtos;
+            businessDto.Promotions = promotionsDtos;
+            return businessDto;
         }
 
         [HttpPost]
@@ -81,10 +97,11 @@ namespace Windows_Backend.Controllers
                 {
                     Name = promotion.Name,
                     PromotionType = promotion.PromotionType,
-                    StartAndEndDate = promotion.StartAndEndDate,
+                    StartDate = promotion.StartDate.ToString(),
+                    EndDate = promotion.EndDate.ToString(),
                     Description = promotion.Description,
                     Creation = promotion.Creation
-                });
+                }) ;
             }
 
             await _businessRepository.SaveChanges();
@@ -163,7 +180,7 @@ namespace Windows_Backend.Controllers
 
             if (business.Promotions != null)
             {
-               await _promotionRepository.RemovePromotion(new Promotion { Id = model.Id, Description = model.Description, Name = model.Name, PromotionType = model.PromotionType, StartAndEndDate = model.StartAndEndDate});
+               await _promotionRepository.RemovePromotion(new Promotion { Id = model.Id, Description = model.Description, Name = model.Name, PromotionType = model.PromotionType, StartDate = model.StartDate.ToString(), EndDate = model.EndDate.ToString()});
             }
             return Ok();
         }
@@ -184,7 +201,8 @@ namespace Windows_Backend.Controllers
             editPromotion.Name = model.Name;
             editPromotion.Description = model.Description;
             editPromotion.PromotionType = model.PromotionType;
-            editPromotion.StartAndEndDate = model.StartAndEndDate;
+            editPromotion.EndDate = model.EndDate.ToString();
+            editPromotion.StartDate = model.StartDate.ToString();
 
             await _promotionRepository.SaveChanges();
 

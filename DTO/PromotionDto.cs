@@ -11,7 +11,8 @@ namespace Windows_Backend.DTO
         public int Id { get; set; }
         public string Name { get; set; }
         public PromotionType PromotionType { get; set; }
-        public string StartAndEndDate { get; set; }
+        public DateTimeOffset StartDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
         public string Description { get; set; }
         public DateTime Creation { get; set; }
     }

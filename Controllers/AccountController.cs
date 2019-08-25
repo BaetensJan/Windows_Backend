@@ -55,6 +55,10 @@ namespace Windows_Backend.Controllers
                 _userRepository.SaveChanges();
                 return await GenerateJwtToken(model.Email, appUser);
             }
+            else
+            {
+                throw new Exception("Wrong email or password");
+            }
 
 
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
@@ -77,7 +81,7 @@ namespace Windows_Backend.Controllers
                         {
                             if (promotion.Creation >= lastLogin)
                             {
-                                promotions.Add(new PromotionDTO { Name = promotion.Name, Description = promotion.Description, PromotionType = promotion.PromotionType , StartAndEndDate = promotion.StartAndEndDate});
+                                promotions.Add(new PromotionDTO { Name = promotion.Name, Description = promotion.Description, PromotionType = promotion.PromotionType, StartDate = promotion.ConvertStringToDateTimeOffset(promotion.StartDate) , EndDate = promotion.ConvertStringToDateTimeOffset(promotion.EndDate) });
                             }
                         }
                     }
