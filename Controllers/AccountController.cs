@@ -19,12 +19,12 @@ namespace Windows_Backend.Controllers
     [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
+        private readonly IBusinessRepository _businessRepository;
         private readonly IConfiguration _configuration;
         private readonly SignInManager<User> _signInManager;
+        private readonly IUserBusinessRepository _userBusinessRepository;
         private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
-        private readonly IUserBusinessRepository _userBusinessRepository;
-        private readonly IBusinessRepository _businessRepository;
 
         public AccountController(
             UserManager<User> userManager,
@@ -63,12 +63,13 @@ namespace Windows_Backend.Controllers
 
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
-        [HttpGet("{email}")]
-        public async Task<List<PromotionDTO>> GetPromotionsFromAbonnees([FromRoute] string email)
+
+        [HttpGet]
+        public async Task<List<PromotionDTO>> GetPromotionsFromAbonnees()
         {
-            var appUser = _userManager.Users.SingleOrDefault(r => r.Email == email);
-            var lastLogin = appUser.LastLogin;
-            var userBusiness = await _userBusinessRepository.FindByUserId(appUser.Id);
+            var user = (await _userManager.GetUserAsync(HttpContext.User));
+            var lastLogin = user.LastLogin;
+            var userBusiness = await _userBusinessRepository.FindByUserId(user.Id);
             var allBusinesses = await _businessRepository.All();
             List<PromotionDTO> promotions = new List<PromotionDTO>();
             foreach (var ub in userBusiness)
@@ -81,20 +82,28 @@ namespace Windows_Backend.Controllers
                         {
                             if (promotion.Creation >= lastLogin)
                             {
-                                promotions.Add(new PromotionDTO { Name = promotion.Name, Description = promotion.Description, PromotionType = promotion.PromotionType, StartDate = promotion.ConvertStringToDateTimeOffset(promotion.StartDate) , EndDate = promotion.ConvertStringToDateTimeOffset(promotion.EndDate) });
+                                promotions.Add(new PromotionDTO
+                                {
+                                    Name = promotion.Name, Description = promotion.Description,
+                                    PromotionType = promotion.PromotionType,
+                                    StartDate = promotion.ConvertStringToDateTimeOffset(promotion.StartDate),
+                                    EndDate = promotion.ConvertStringToDateTimeOffset(promotion.EndDate)
+                                });
                             }
                         }
                     }
                 }
             }
+
             return promotions;
         }
+
         [HttpGet("{email}")]
-        public async Task<List<EventDTO>> GetEventsFromAbbonees([FromRoute] string email)
+        public async Task<List<EventDTO>> GetEventsFromAbbonees()
         {
-            var appUser = _userManager.Users.SingleOrDefault(r => r.Email == email);
-            var lastLogin = appUser.LastLogin;
-            var userBusiness = await _userBusinessRepository.FindByUserId(appUser.Id);
+            var user = (await _userManager.GetUserAsync(HttpContext.User));
+            var lastLogin = user.LastLogin;
+            var userBusiness = await _userBusinessRepository.FindByUserId(user.Id);
             var allBusinesses = await _businessRepository.All();
             List<EventDTO> events = new List<EventDTO>();
             foreach (var ub in userBusiness)
@@ -107,14 +116,17 @@ namespace Windows_Backend.Controllers
                         {
                             if (xEvent.Creation >= lastLogin)
                             {
-                                events.Add(new EventDTO { Name = xEvent.Name, Description = xEvent.Description, Type = xEvent.Type });
+                                events.Add(new EventDTO
+                                    {Name = xEvent.Name, Description = xEvent.Description, Type = xEvent.Type});
                             }
                         }
                     }
                 }
             }
+
             return events;
         }
+
         [HttpPost]
         public async Task<object> Register([FromBody] RegisterDTO model)
         {
@@ -181,14 +193,14 @@ namespace Windows_Backend.Controllers
         [HttpPost]
         public async Task<bool> Subscribe([FromBody] int Id)
         {
-            var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
+            var appUser = (await _userManager.GetUserAsync(HttpContext.User));
+            var email = appUser.Email;
             var user = await _userRepository.FindByEmail(email);
             var alreadySubscribed = true;
             var userBusiness = new UserBusiness
             {
                 UserId = user.Id,
                 BusinessId = Id,
-                
             };
             var count = 0;
             foreach (var subscriber in user.Subscribers)
@@ -201,6 +213,7 @@ namespace Windows_Backend.Controllers
                     user.Subscribers.Last();
                 }
             }
+
             if (alreadySubscribed)
             {
                 user.Subscribers.Add(userBusiness);
@@ -210,12 +223,13 @@ namespace Windows_Backend.Controllers
                 _userRepository.RemoveUserBusinessForUserAsync(user.Email, count - 1);
                 //user.Subscribers.RemoveAt(count - 1);
             }
+
             _userRepository.SaveChanges();
             return alreadySubscribed;
         }
 
         [HttpPost]
-        public async Task<bool> CheckUserBusinessForSubscribtion([FromBody] int Id)
+        public async Task<bool> CheckUserBusinessForSubscription([FromBody] int Id)
         {
             var email = (await _userManager.GetUserAsync(HttpContext.User)).Email;
             var user = await _userRepository.FindByEmail(email);
@@ -227,7 +241,7 @@ namespace Windows_Backend.Controllers
                     alreadySubscribed = true;
                 }
             }
-          
+
             return alreadySubscribed;
         }
     }
