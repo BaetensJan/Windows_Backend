@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 using Windows_Backend.Enums;
 
 namespace Windows_Backend.Entities
@@ -19,7 +15,7 @@ namespace Windows_Backend.Entities
 
         public DateTimeOffset ConvertStringToDateTimeOffset(string dateTime)
         {
-           return DateTimeOffset.Parse(dateTime);
+            return DateTimeOffset.Parse(dateTime);
         }
     }
 }

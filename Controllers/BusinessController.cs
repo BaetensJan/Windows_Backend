@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows_Backend.DTO;
@@ -7,7 +8,6 @@ using IronPdf;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NetBarcode;
-using System;
 
 namespace Windows_Backend.Controllers
 {
@@ -19,6 +19,7 @@ namespace Windows_Backend.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IEventRepository _eventRepository;
         private readonly IPromotionRepository _promotionRepository;
+
         public BusinessController(IBusinessRepository businessRepository, UserManager<User> userManager,
             IUserRepository userRepository, IEventRepository eventRepository,
             IPromotionRepository promotionRepository)
@@ -48,13 +49,25 @@ namespace Windows_Backend.Controllers
             List<EventDTO> eventDtos = new List<EventDTO>();
             foreach (var eventDto in result.Events)
             {
-                eventDtos.Add(new EventDTO { Id = eventDto.Id, Name = eventDto.Name, Creation = eventDto.Creation, Description = eventDto.Description, Type = eventDto.Type });
+                eventDtos.Add(new EventDTO
+                {
+                    Id = eventDto.Id, Name = eventDto.Name, Creation = eventDto.Creation,
+                    Description = eventDto.Description, Type = eventDto.Type
+                });
             }
+
             List<PromotionDTO> promotionsDtos = new List<PromotionDTO>();
-            foreach(var promotionDto in result.Promotions)
+            foreach (var promotionDto in result.Promotions)
             {
-                promotionsDtos.Add(new PromotionDTO { Id = promotionDto.Id, Name = promotionDto.Name, Creation = promotionDto.Creation, PromotionType = promotionDto.PromotionType, Description = promotionDto.Description, EndDate = promotionDto.ConvertStringToDateTimeOffset(promotionDto.EndDate), StartDate = promotionDto.ConvertStringToDateTimeOffset(promotionDto.StartDate)});
+                promotionsDtos.Add(new PromotionDTO
+                {
+                    Id = promotionDto.Id, Name = promotionDto.Name, Creation = promotionDto.Creation,
+                    PromotionType = promotionDto.PromotionType, Description = promotionDto.Description,
+                    EndDate = promotionDto.EndDate,
+                    StartDate = promotionDto.StartDate
+                });
             }
+
             businessDto.Events = eventDtos;
             businessDto.Promotions = promotionsDtos;
             return businessDto;
@@ -89,6 +102,7 @@ namespace Windows_Backend.Controllers
             {
                 await _promotionRepository.RemoveMultiple(business.Promotions);
             }
+
             business.Promotions = new List<Promotion>();
             await _businessRepository.SaveChanges();
             foreach (var promotion in model.Promotions)
@@ -97,11 +111,11 @@ namespace Windows_Backend.Controllers
                 {
                     Name = promotion.Name,
                     PromotionType = promotion.PromotionType,
-                    StartDate = promotion.StartDate.ToString(),
-                    EndDate = promotion.EndDate.ToString(),
+                    StartDate = promotion.StartDate,
+                    EndDate = promotion.EndDate,
                     Description = promotion.Description,
                     Creation = promotion.Creation
-                }) ;
+                });
             }
 
             await _businessRepository.SaveChanges();
@@ -119,7 +133,7 @@ namespace Windows_Backend.Controllers
 
             if (business.Events != null)
             {
-               await _eventRepository.RemoveMultiple(business.Events);
+                await _eventRepository.RemoveMultiple(business.Events);
             }
 
             business.Events = new List<Event>();
@@ -164,8 +178,10 @@ namespace Windows_Backend.Controllers
 
             if (business.Events != null)
             {
-                await _eventRepository.RemoveEvent(new Event { Id = model.Id, Description = model.Description, Name = model.Name, Type = model.Type});
+                await _eventRepository.RemoveEvent(new Event
+                    {Id = model.Id, Description = model.Description, Name = model.Name, Type = model.Type});
             }
+
             return Ok();
         }
 
@@ -180,10 +196,17 @@ namespace Windows_Backend.Controllers
 
             if (business.Promotions != null)
             {
-               await _promotionRepository.RemovePromotion(new Promotion { Id = model.Id, Description = model.Description, Name = model.Name, PromotionType = model.PromotionType, StartDate = model.StartDate.ToString(), EndDate = model.EndDate.ToString()});
+                await _promotionRepository.RemovePromotion(new Promotion
+                {
+                    Id = model.Id, Description = model.Description, Name = model.Name,
+                    PromotionType = model.PromotionType, StartDate = model.StartDate,
+                    EndDate = model.EndDate
+                });
             }
+
             return Ok();
         }
+
         [HttpPost]
         public async Task<IActionResult> EditPromotion([FromBody] PromotionDTO model)
         {
@@ -193,21 +216,21 @@ namespace Windows_Backend.Controllers
             var business = user.Business;
             if (business == null) return Unauthorized();
 
-            if(business.Promotions == null)
+            if (business.Promotions == null)
             {
                 new Exception("Promotielijst is leeg, er kan niets worden aangepast.");
             }
+
             var editPromotion = await _promotionRepository.FindById(model.Id);
             editPromotion.Name = model.Name;
             editPromotion.Description = model.Description;
             editPromotion.PromotionType = model.PromotionType;
-            editPromotion.EndDate = model.EndDate.ToString();
-            editPromotion.StartDate = model.StartDate.ToString();
+            editPromotion.EndDate = model.EndDate;
+            editPromotion.StartDate = model.StartDate;
 
             await _promotionRepository.SaveChanges();
 
             return Ok();
-
         }
 
         [HttpPost]
@@ -223,6 +246,7 @@ namespace Windows_Backend.Controllers
             {
                 new Exception("Eventlijst is leeg, er kan niets worden aangepast.");
             }
+
             var editEvent = await _eventRepository.FindEventById(model.Id);
             editEvent.Name = model.Name;
             editEvent.Description = model.Description;
@@ -231,12 +255,10 @@ namespace Windows_Backend.Controllers
             await _promotionRepository.SaveChanges();
 
             return Ok();
-
         }
+
         private void CreateNotification()
         {
-            
-
         }
     }
 }

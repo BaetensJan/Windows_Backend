@@ -86,8 +86,8 @@ namespace Windows_Backend.Controllers
                                 {
                                     Name = promotion.Name, Description = promotion.Description,
                                     PromotionType = promotion.PromotionType,
-                                    StartDate = promotion.ConvertStringToDateTimeOffset(promotion.StartDate),
-                                    EndDate = promotion.ConvertStringToDateTimeOffset(promotion.EndDate)
+                                    StartDate = promotion.StartDate,
+                                    EndDate = promotion.EndDate
                                 });
                             }
                         }
