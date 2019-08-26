@@ -97,7 +97,27 @@ namespace Windows_Backend.Controllers
 
             return promotions;
         }
-
+        public async Task<List<Business>> GetBusinessesWhereUserIsAnAbbonee([FromRoute] string email)
+        {
+            List<Business> businesses = new List<Business>();
+            var user = (await _userManager.GetUserAsync(HttpContext.User));
+            var userBusiness = await _userBusinessRepository.FindByUserId(user.Id);
+            var allBusinesses = await _businessRepository.All();
+            foreach (var b in allBusinesses)
+            {
+                foreach (var ub in userBusiness)
+                {
+                    if (b.Id == ub.BusinessId)
+                    {
+                        if (b.Events.Count != 0 || b.Promotions.Count != 0)
+                        {
+                            businesses.Add(b);
+                        }
+                    }
+                }
+            }
+            return businesses;
+        }
         [HttpGet("{email}")]
         public async Task<List<EventDTO>> GetEventsFromAbbonees()
         {
@@ -136,6 +156,7 @@ namespace Windows_Backend.Controllers
                 Email = model.Email,
                 UserType = model.UserType,
                 LastLogin = DateTime.UtcNow
+                
             };
             if (model.UserType == UserType.Business)
             {
@@ -143,8 +164,11 @@ namespace Windows_Backend.Controllers
                 {
                     Name = model.Business.Name,
                     Address = model.Business.Address,
+                    ImageUrl = model.Business.ImageUrl,
                     Type = model.Business.Type
+                    
                 };
+                var x = model.Business.ImageUrl;
             }
 
             var result = await _userManager.CreateAsync(user, model.Password);
