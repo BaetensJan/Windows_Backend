@@ -51,8 +51,6 @@ namespace Windows_Backend.Controllers
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == model.Email);
-                appUser.LastLogin = DateTime.UtcNow;
-                _userRepository.SaveChanges();
                 return await GenerateJwtToken(model.Email, appUser);
             }
             else
@@ -95,6 +93,8 @@ namespace Windows_Backend.Controllers
                 }
             }
 
+            user.LastLogin = DateTime.UtcNow;
+            _userRepository.SaveChanges();
             return promotions;
         }
         public async Task<List<Business>> GetBusinessesWhereUserIsAnAbbonee([FromRoute] string email)
@@ -118,7 +118,6 @@ namespace Windows_Backend.Controllers
             }
             return businesses;
         }
-        [HttpGet("{email}")]
         public async Task<List<EventDTO>> GetEventsFromAbbonees()
         {
             var user = (await _userManager.GetUserAsync(HttpContext.User));
